@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050608">
+  <meta name="description" content="Cosmic Pioneer explores concepts for reusable launch vehicles, spacecraft and humanity's future in space.">
+  <title>Cosmic Pioneer | Beyond Earth's Horizon</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: #050608;
+      color: #f5f7fa;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: min(1100px, 88%); margin: auto; }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(5,6,8,.94);
+      border-bottom: 1px solid #20232b;
+    }
+    nav {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .logo { font-size: 15px; font-weight: 800; letter-spacing: 2px; }
+    .logo span { color: #8fc5ff; }
+    .links { display: flex; gap: 20px; }
+    .links a { font-size: 11px; color: #c4cbd5; }
+    .links a:hover { color: white; }
+
+    .hero {
+      min-height: 82vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 80% 35%, #183254 0%, transparent 35%),
+        radial-gradient(ellipse at 25% 90%, #151d2a 0%, transparent 40%),
+        #050608;
+      position: relative;
+    }
+    .hero:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .55;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, white 99%, transparent),
+        radial-gradient(1px 1px at 60% 30%, white 99%, transparent),
+        radial-gradient(2px 2px at 80% 70%, #b9d9ff 99%, transparent),
+        radial-gradient(1px 1px at 40% 80%, white 99%, transparent);
+      background-size: 190px 170px;
+    }
+    .hero-content {
+      position: relative;
+      padding: 90px 0;
+      max-width: 760px;
+      animation: appear .8s ease both;
+    }
+    .eyebrow {
+      color: #91c7ff;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(43px, 8vw, 82px);
+      line-height: 1.02;
+      letter-spacing: -2.5px;
+      margin: 22px 0;
+    }
+    h1 span { color: #9daec4; }
+    .lead { color: #b8c0cc; max-width: 570px; font-size: 16px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .btn {
+      display: inline-block;
+      padding: 13px 18px;
+      border: 1px solid #566170;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: .2s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .primary { background: #f4f6f9; color: #07090d; border-color: white; }
+
+    section.content { padding: 82px 0; }
+    h2 { font-size: clamp(30px, 5vw, 46px); line-height: 1.12; margin: 12px 0; letter-spacing: -1px; }
+    .muted { color: #a4acb8; }
+    .intro { max-width: 670px; margin-bottom: 34px; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card {
+      padding: 23px;
+      border: 1px solid #292e38;
+      background: linear-gradient(145deg, #141821, #090a0d);
+      min-height: 245px;
+      transition: border-color .2s, transform .2s;
+    }
+    .card:hover { border-color: #7899c2; transform: translateY(-3px); }
+    .number { color: #8fc5ff; font-size: 12px; letter-spacing: 2px; }
+    .card h3 { margin-top: 34px; margin-bottom: 8px; font-size: 21px; }
+    .tag {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 7px;
+      color: #f0d4a4;
+      border: 1px solid #58472d;
+      font-size: 9px;
+      letter-spacing: 1px;
+    }
+
+    .vision {
+      background: #0b0e13;
+      border-top: 1px solid #222733;
+      border-bottom: 1px solid #222733;
+    }
+    .vision-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 45px;
+      align-items: center;
+    }
+    .planet-scene {
+      min-height: 290px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #262e3b;
+      background: radial-gradient(circle, #17243a, #07090d 68%);
+    }
+    .planet {
+      width: 125px;
+      height: 125px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, #d4eaff, #4b7ba5 45%, #101a2c 80%);
+      box-shadow: 0 0 55px #376da044;
+    }
+    .orbit {
+      position: absolute;
+      width: 235px;
+      height: 85px;
+      border: 1px solid #759cc9;
+      border-radius: 50%;
+      transform: rotate(-25deg);
+    }
+    .orbit.two {
+      width: 285px;
+      height: 115px;
+      border-color: #3b506d;
+      transform: rotate(35deg);
+    }
+    .principles { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; margin-top: 30px; }
+    .principle { border-top: 1px solid #343944; padding-top: 16px; }
+    .principle h3 { font-size: 15px; }
+    .principle p { color: #a4acb8; font-size: 13px; }
+
+    .contact { text-align: center; padding: 90px 0; }
+    .contact p { max-width: 500px; margin: 16px auto 28px; color: #a4acb8; }
+    footer { border-top: 1px solid #242832; padding: 24px 0; color: #8b929e; font-size: 11px; }
+    .footer-row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *:before, *:after { animation: none !important; transition: none !important; }
+      html { scroll-behavior: auto; }
+    }
+    @media (max-width: 700px) {
+      .logo { font-size: 11px; letter-spacing: 1px; }
+      .links { gap: 10px; }
+      .links a { font-size: 9px; }
+      .hero { min-height: 74vh; }
+      h1 { letter-spacing: -1.5px; }
+      .lead { font-size: 14px; }
+      section.content { padding: 62px 0; }
+      .grid, .vision-grid, .principles { grid-template-columns: 1fr; }
+      .vision-grid { gap: 28px; }
+      .card { min-height: 205px; }
+      .card h3 { margin-top: 23px; }
+      .planet-scene { min-height: 250px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="wrap">
+      <a class="logo" href="#home">COSMIC<span>PIONEER</span></a>
+      <div class="links">
+        <a href="#concepts">CONCEPTS</a>
+        <a href="#vision">VISION</a>
+        <a href="#about">ABOUT</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="wrap hero-content">
+        <div class="eyebrow">Independent aerospace initiative</div>
+        <h1>BEYOND<br><span>EARTH'S HORIZON.</span></h1>
+        <p class="lead">
+          Exploring bold ideas for humanity's future in space.
+          From reusable launch systems to deep-space exploration,
+          our journey begins with curiosity, learning and engineering.
+        </p>
+        <div class="actions">
+          <a class="btn primary" href="#concepts">EXPLORE CONCEPTS ↗</a>
+          <a class="btn" href="#vision">OUR VISION</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="content wrap" id="concepts">
+      <div class="intro">
+        <div class="eyebrow">01 / Concept development</div>
+        <h2>Designed for the future.</h2>
+        <p class="muted">
+          Early-stage ideas exploring possible approaches to space access
+          and exploration. The projects below are concepts, not operational
+          vehicles or validated engineering designs.
+        </p>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <div class="number">CP / 001</div>
+          <h3>Reusable Launch Vehicle</h3>
+          <p class="muted">A concept exploring reusable launch systems and future access to orbit.</p>
+          <span class="tag">CONCEPT ONLY</span>
+        </article>
+        <article class="card">
+          <div class="number">CP / 002</div>
+          <h3>Orbital Spacecraft</h3>
+          <p class="muted">A conceptual spacecraft for exploring future cargo and orbital mission ideas.</p>
+          <span class="tag">CONCEPT ONLY</span>
+        </article>
+        <article class="card">
+          <div class="number">CP / 003</div>
+          <h3>Deep Space Initiative</h3>
+          <p class="muted">A long-term vision for scientific exploration beyond Earth's neighborhood.</p>
+          <span class="tag">VISION / RESEARCH</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="content vision" id="vision">
+      <div class="wrap vision-grid">
+        <div>
+          <div class="eyebrow">02 / The bigger picture</div>
+          <h2>Space is a frontier worth exploring.</h2>
+          <p class="muted">
+            Progress begins with curiosity, disciplined learning and a
+            willingness to solve difficult problems. Our ambition is to
+            contribute to a future where space technology opens new
+            opportunities for science and humanity.
+          </p>
+          <a class="btn" href="#about">OUR APPROACH ↗</a>
+        </div>
+        <div class="planet-scene" role="img" aria-label="Abstract planet with orbital paths">
+          <div class="planet"></div>
+          <div class="orbit"></div>
+          <div class="orbit two"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content wrap" id="about">
+      <div class="intro">
+        <div class="eyebrow">03 / Our approach</div>
+        <h2>Ambition backed by learning.</h2>
+        <p class="muted">
+          Cosmic Pioneer is an early-stage initiative exploring ideas,
+          building knowledge and identifying practical first steps.
+        </p>
+      </div>
+      <div class="principles">
+        <div class="principle">
+          <div class="eyebrow">01</div>
+          <h3>Learn relentlessly</h3>
+          <p>Study science, engineering and the fundamentals of aerospace systems.</p>
+        </div>
+        <div class="principle">
+          <div class="eyebrow">02</div>
+          <h3>Build responsibly</h3>
+          <p>Begin with research, simulations and safe educational prototypes.</p>
+        </div>
+        <div class="principle">
+          <div class="eyebrow">03</div>
+          <h3>Think long-term</h3>
+          <p>Turn ambitious ideas into achievable milestones through evidence and teamwork.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact wrap" id="contact">
+      <div class="eyebrow">04 / The journey starts here</div>
+      <h2>Curiosity has no horizon.</h2>
+      <p>Interested in space, science or future aerospace projects? Follow our journey as ideas develop.</p>
+      <a class="btn primary" href="mailto:hello@cosmicpioneer.com?subject=Cosmic%20Pioneer%20Enquiry">GET IN TOUCH ↗</a>
+      <p style="font-size:11px;">The email link works only if this mailbox is configured.</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-row">
+      <span>© <span id="year">2026</span> COSMIC PIONEER</span>
+      <span>Exploring ideas. Learning to build.</span>
+      <a href="#home">BACK TO TOP ↑</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
