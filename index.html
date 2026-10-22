@@ -1,0 +1,489 @@
+```html
+<!DOCTYPE html>
+<html lang="en" data-tone="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cosmic Pioneer</title>
+<meta name="description" content="Cosmic Pioneer: Climbing from the ground to the Moon.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Premium Aerospace Fonts: Space Grotesk for technical headings, Inter for clean reading -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fg-light: #0a0f25;
+    --fg-dark: #f8f9fa;
+    --head: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --body: "Inter", "Helvetica Neue", Arial, sans-serif;
+    --fg: var(--fg-light);
+  }
+  
+  /* Night mode transition variable */
+  :root[data-tone="night"] { 
+    --fg: var(--fg-dark); 
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  
+  body {
+    margin: 0; 
+    background: #a9ccf0; 
+    color: var(--fg);
+    font-family: var(--body); 
+    font-size: 1.15rem; 
+    line-height: 1.6;
+    transition: color 0.8s ease-in-out;
+    overflow-x: hidden;
+  }
+  
+  a { 
+    color: inherit; 
+    text-underline-offset: 4px; 
+    transition: all 0.3s ease;
+  }
+  
+  a:hover {
+    opacity: 0.8;
+  }
+  
+  a:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+
+  /* --- SCENERY LAYERS --- */
+  .sky { position: fixed; inset: 0; z-index: 0; background: linear-gradient(#a9ccf0, #f6d9b5); }
+  
+  #stars { 
+    position: fixed; inset: 0; z-index: 1; 
+    width: 100%; height: 100%; 
+    opacity: 0; 
+    pointer-events: none; 
+    transition: opacity 1s;
+  }
+  
+  .sun {
+    position: fixed; z-index: 1; left: 50%; top: 62vh; 
+    width: 70vmax; height: 70vmax;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(255,245,210,1) 0%, rgba(255,190,110,0.6) 15%, rgba(255,170,90,0) 55%);
+    pointer-events: none;
+  }
+  
+  .earth {
+    position: fixed; z-index: 2; left: 50%; border-radius: 50%; pointer-events: none;
+    background: linear-gradient(135deg, #5eb2e4 0%, #1a64b3 25%, #08234f 55%, #020716 100%);
+    box-shadow: 0 -10px 60px 15px rgba(94,178,228,0.4), inset 0 20px 50px rgba(255,255,255,0.3);
+  }
+  
+  .moon {
+    position: fixed; z-index: 1; right: 12vw; top: 24vh; 
+    width: 16vmin; height: 16vmin; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #ffffff, #dcdacb 45%, #7a766c 90%);
+    box-shadow: 0 0 80px rgba(240,238,225,0.6), inset -15px -15px 35px rgba(0,0,0,0.6);
+    opacity: 0; pointer-events: none;
+  }
+
+  /* --- NAVIGATION BAR (Glassmorphism) --- */
+  .bar { 
+    position: fixed; z-index: 10; top: 0; left: 0; right: 0; 
+    display: flex; justify-content: space-between; align-items: flex-start; 
+    padding: 1.5rem clamp(1.5rem, 6vw, 5rem); 
+    pointer-events: none; 
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #fff; /* Always white for premium contrast */
+  }
+  
+  .bar > * { pointer-events: auto; }
+  
+  .brand { 
+    font-family: var(--head); font-weight: 700; font-size: 1.15rem; 
+    text-decoration: none; text-transform: uppercase; letter-spacing: 0.15em;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  }
+  
+  .gauge { text-align: right; line-height: 1.3; }
+  .gauge b { 
+    display: block; font-family: var(--head); font-weight: 700; 
+    font-size: 1.4rem; font-variant-numeric: tabular-nums; 
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 15px rgba(255,255,255,0.4);
+  }
+  .gauge span { font-size: 0.8rem; opacity: .8; text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--head);}
+
+  /* --- CONTENT SECTIONS --- */
+  main { position: relative; z-index: 5; }
+  
+  section { 
+    min-height: 100svh; 
+    padding: 20vh clamp(1.5rem, 6vw, 5rem) 26vh; 
+    display: flex; flex-direction: column; justify-content: center; 
+  }
+  
+  .inner { max-width: 46rem; }
+  
+  h1 { 
+    font-family: var(--head); font-weight: 700; 
+    font-size: clamp(3.2rem, 14vw, 8.5rem); line-height: 0.95; 
+    letter-spacing: -0.04em; margin: 0 0 1.5rem; 
+    text-transform: uppercase;
+  }
+  
+  /* Glowing text effects in night mode */
+  :root[data-tone="night"] h1, 
+  :root[data-tone="night"] h2 {
+    text-shadow: 0 0 25px rgba(255,255,255,0.25);
+  }
+  
+  h2 { 
+    font-family: var(--head); font-weight: 700; 
+    font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.1; 
+    letter-spacing: -0.03em; margin: 0 0 1.5rem; 
+  }
+  
+  p { margin: 0 0 1.25rem; font-weight: 300; }
+  
+  .lede { 
+    font-size: clamp(1.2rem, 3vw, 1.4rem); 
+    max-width: 40rem; 
+    line-height: 1.6;
+    font-weight: 400;
+  }
+  
+  .hint { margin-top: 3.5rem; font-size: 0.85rem; opacity: .7; text-transform: uppercase; letter-spacing: 0.15em; font-family: var(--head);}
+  
+  dl { margin: 2rem 0 1rem; }
+  
+  dt { 
+    font-family: var(--head); font-weight: 500; font-size: 1.2rem; 
+    padding-top: 1.2rem; border-top: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); 
+    letter-spacing: 0.02em;
+  }
+  
+  dd { margin: .5rem 0 1.75rem; font-weight: 300; opacity: 0.85; }
+  
+  .fine { font-size: 0.9rem; opacity: .6; }
+  
+  /* Interactive Lists */
+  .rows { list-style: none; margin: 2rem 0 0; padding: 0; }
+  
+  .rows a, .rows div.row-item { 
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem; 
+    padding: 1.25rem 0; text-decoration: none; 
+    border-top: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .rows li:last-child a, .rows li:last-child div.row-item { 
+    border-bottom: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); 
+  }
+  
+  .rows strong { font-family: var(--head); font-weight: 500; font-size: 1.15rem; letter-spacing: 0.03em;}
+  .rows span { font-size: 0.9rem; opacity: 0.7; text-align: right; font-weight: 300;}
+  
+  .rows a:hover { 
+    padding-left: 15px;
+    padding-right: 15px;
+    background: color-mix(in srgb, var(--fg) 4%, transparent);
+    border-radius: 4px;
+  }
+  
+  :root[data-tone="night"] .rows a:hover strong { 
+    text-shadow: 0 0 15px rgba(255,255,255,0.4); 
+  }
+
+  .big { font-family: var(--head); font-size: 1.5rem; font-weight: 500; }
+  
+  /* Custom Link Styles */
+  .highlight-link {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--fg) 40%, transparent);
+    padding-bottom: 2px;
+    transition: all 0.2s ease;
+  }
+  
+  .highlight-link:hover {
+    border-bottom-color: var(--fg);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--fg) 30%, transparent);
+  }
+
+  @media (max-width: 600px) {
+    body { font-size: 1.05rem; }
+    .rows a, .rows div.row-item { flex-direction: column; align-items: flex-start; gap: .35rem; }
+    .rows span { text-align: left; }
+    .moon { right: 8vw; top: 20vh; }
+    .bar { padding: 1.2rem; }
+  }
+  
+  @media (prefers-reduced-motion: reduce) { 
+    html { scroll-behavior: auto; } 
+    body { transition: none; } 
+  }
+</style>
+</head>
+<body>
+
+<!-- Fixed Background Layers -->
+<div class="sky" id="sky" aria-hidden="true"></div>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="sun" id="sun" aria-hidden="true"></div>
+<div class="moon" id="moon" aria-hidden="true"></div>
+<div class="earth" id="earth" aria-hidden="true"></div>
+
+<!-- Top Navigation / Altitude Gauge -->
+<div class="bar">
+  <a class="brand" href="#top">cosmicpioneer</a>
+  <div class="gauge" aria-live="off">
+    <b id="alt">0 km</b>
+    <span id="stage">On the ground</span>
+  </div>
+</div>
+
+<!-- Main Scrolling Content -->
+<main id="top">
+  
+  <!-- 1. Hero Section -->
+  <section>
+    <div class="inner">
+      <h1>Cosmic<br>Pioneer</h1>
+      <p class="lede">An ugly man knows He's ugly, but an Ugly bit*ch thinks She's a baddie. This page climbs from the ground to the Moon as you scroll.</p>
+      <p class="hint">Scroll to launch ↓</p>
+    </div>
+  </section>
+
+  <!-- 2. About Section -->
+  <section>
+    <div class="inner">
+      <h2>Hi, I'm Manish.</h2>
+      <p>I interested in all field but master of none. I’m learning every fundamentals, and I like knowing how things work. I like Astronomy, Philosophy, Artificial intelligence, Technology. And I love to play chess!</p>
+      <p>I built this place for my friends, so you can see what I’m up to and say hello.</p>
+    </div>
+  </section>
+
+  <!-- 3. Projects/Ideas Section -->
+  <section>
+    <div class="inner">
+      <h2>Ideas I’m exploring</h2>
+      <dl>
+        <dt>Reusable launch vehicles</dt>
+        <dd>How a rocket can fly more than once.</dd>
+        <dt>Orbital spacecraft</dt>
+        <dd>What it takes to move cargo around Earth.</dd>
+        <dt>Deep-space exploration</dt>
+        <dd>Long journeys far beyond our neighbourhood.</dd>
+      </dl>
+      <p class="fine">These are early ideas and learning projects, not engineering designs.</p>
+    </div>
+  </section>
+
+  <!-- 4. The Friend Room Section -->
+  <section>
+    <div class="inner">
+      <h2>The friend room</h2>
+      <p><a href="https://twitter.com/ManishX25" target="_blank" class="highlight-link">A place for the people closest to me.</a></p>
+      <ul class="rows">
+        <li>
+          <a href="https://unsplash.com/@cosmicpioneer" target="_blank">
+            <strong>Photo album</strong><span>Trips and everyday moments</span>
+          </a>
+        </li>
+        <li>
+          <!-- Non-clickable row for "Coming soon" -->
+          <div class="row-item" style="opacity: 0.7; cursor: default;">
+            <strong>News and updates</strong><span>Coming soon</span>
+          </div>
+        </li>
+        <li>
+          <a href="mailto:solitudesophy@gmail.com">
+            <strong>Say hello</strong><span>Send me a message</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5. Connect Section -->
+  <section>
+    <div class="inner">
+      <h2>Connect with me</h2>
+      <p>Find me out there in the digital universe.</p>
+      <ul class="rows">
+        <li>
+          <a href="https://instagram.com/cosmicpioneer" target="_blank">
+            <strong>Instagram</strong><span>@cosmicpioneer</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://x.com/ManishX25" target="_blank">
+            <strong>X (Twitter)</strong><span>@ManishX25</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://x.com/UniversePioneer" target="_blank">
+            <strong>X (Twitter)</strong><span>@UniversePioneer</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 6. Moon / Footer Section -->
+  <section>
+    <div class="inner">
+      <h2>You made it to the Moon.</h2>
+      <p>That’s 384,400 km from where you started. Thanks for visiting.</p>
+      <p class="big"><a href="mailto:solitudesophy@gmail.com" class="highlight-link">solitudesophy@gmail.com</a></p>
+      <p class="fine" style="margin-top: 4rem;"><a href="#top" class="highlight-link">Return to the ground</a></p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var skyEl = document.getElementById('sky'), starsEl = document.getElementById('stars');
+  var sunEl = document.getElementById('sun'), moonEl = document.getElementById('moon'), earthEl = document.getElementById('earth');
+  var altEl = document.getElementById('alt'), stageEl = document.getElementById('stage');
+
+  // Atmosphere to Deep Space color gradients
+  var SKY = [
+    [0,   '#a9ccf0', '#f6d9b5'],
+    [.12, '#5b78c4', '#d49a9a'],
+    [.25, '#1a2358', '#3b3a78'],
+    [.45, '#090d26', '#12183f'],
+    [.75, '#030510', '#070a1a'],
+    [1,   '#010205', '#02030a']
+  ];
+  
+  function rgb(h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); }
+  function mix(a, b, t) {
+    var A = rgb(a), B = rgb(b);
+    return 'rgb(' + A.map(function (v, i) { return Math.round(v + (B[i] - v) * t); }).join(',') + ')';
+  }
+  function skyAt(p) {
+    for (var i = 1; i < SKY.length; i++) {
+      if (p <= SKY[i][0]) {
+        var a = SKY[i - 1], b = SKY[i], t = (p - a[0]) / (b[0] - a[0]);
+        return [mix(a[1], b[1], t), mix(a[2], b[2], t)];
+      }
+    }
+    var l = SKY[SKY.length - 1];
+    return [mix(l[1], l[1], 0), mix(l[2], l[2], 0)];
+  }
+  function smooth(a, b, x) { var t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
+
+  // --- PREMIUM STAR ANIMATION SYSTEM ---
+  var ctx = starsEl.getContext('2d');
+  var starsData = [];
+  
+  function initStars() {
+    var dpr = window.devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+    starsEl.width = w * dpr; starsEl.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    
+    starsData = [];
+    var seed = 42; // Fixed seed for consistent star placement
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    
+    // Generate star field
+    for (var i = 0; i < 400; i++) {
+      starsData.push({
+        x: rnd() * w,
+        y: rnd() * h,
+        r: rnd() * 1.2 + 0.3,
+        baseAlpha: 0.1 + rnd() * 0.7,
+        twinkleSpeed: 0.002 + rnd() * 0.008,
+        driftSpeed: rnd() * 0.15,
+        color: rnd() > 0.85 ? '#ffe9b0' : (rnd() > 0.75 ? '#b0d4ff' : '#ffffff')
+      });
+    }
+  }
+
+  function renderStars() {
+    var w = innerWidth, h = innerHeight;
+    ctx.clearRect(0, 0, w, h);
+    
+    var time = Date.now();
+    
+    for (var i = 0; i < starsData.length; i++) {
+      var s = starsData[i];
+      
+      // Calculate twinkling
+      var currentAlpha = s.baseAlpha + Math.sin(time * s.twinkleSpeed + i) * 0.3;
+      currentAlpha = Math.max(0.05, Math.min(1, currentAlpha));
+      
+      ctx.globalAlpha = currentAlpha;
+      ctx.fillStyle = s.color;
+      ctx.beginPath(); 
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); 
+      ctx.fill();
+      
+      // Calculate slow vertical drift (parallax effect)
+      s.y -= s.driftSpeed;
+      if (s.y < 0) s.y = h;
+    }
+    
+    requestAnimationFrame(renderStars);
+  }
+
+  // --- ALTITUDE & SCROLL LOGIC ---
+  function stageName(alt, p) {
+    if (p > .995) return 'At the Moon';
+    if (alt < 1) return 'On the ground';
+    if (alt < 100) return 'Atmosphere';
+    if (alt < 2000) return 'Low Earth orbit';
+    if (alt < 35000) return 'High orbit';
+    return 'Deep Space';
+  }
+
+  function update() {
+    var max = root.scrollHeight - innerHeight;
+    var p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    
+    // Background gradient transition
+    var c = skyAt(p);
+    skyEl.style.background = 'linear-gradient(to bottom, ' + c[0] + ' 0%, ' + c[1] + ' 100%)';
+    
+    // Toggle CSS tone for text colors
+    root.dataset.tone = p < .15 ? 'day' : 'night';
+    
+    // Celestial body transitions
+    starsEl.style.opacity = smooth(.10, .35, p);
+    sunEl.style.opacity = 1 - smooth(0, .20, p);
+    
+    moonEl.style.opacity = smooth(.65, .98, p);
+    moonEl.style.transform = 'scale(' + (.4 + .6 * smooth(.65, 1, p)) + ')';
+    
+    // Earth descending and shrinking
+    var d = 200 - 130 * p;
+    earthEl.style.width = earthEl.style.height = d + 'vmax';
+    earthEl.style.marginLeft = (-d / 2) + 'vmax';
+    earthEl.style.top = (80 + 20 * p) + 'vh';
+    
+    // Altitude calculation (Exponential to simulate rapid distance gain)
+    var alt = p >= .995 ? 384400 : Math.max(0, Math.pow(10, p * 5.585) - 1);
+    
+    // Update DOM
+    altEl.textContent = Math.round(alt).toLocaleString('en-US') + ' km';
+    stageEl.textContent = stageName(alt, p);
+  }
+
+  // Initialization
+  initStars(); 
+  update();
+  requestAnimationFrame(renderStars);
+  
+  // Listeners
+  addEventListener('scroll', function () { requestAnimationFrame(update); }, { passive: true });
+  addEventListener('resize', function () { initStars(); update(); });
+})();
+</script>
+</body>
+</html>
+```
