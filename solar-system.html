@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Solar System · Cosmic Pioneer</title>
+<style>
+:root{--void:#05070d;--ink:#e9ecf4;--dim:#8a93a8;--sun:#ffb454;--glass:rgba(14,18,30,.62);--line:rgba(255,255,255,.1);color-scheme:dark;
+--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--void);color:var(--ink);font-family:var(--sans);overflow:hidden;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:block;cursor:grab}
+#c:active{cursor:grabbing}
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.l{position:absolute;left:0;top:0;font-size:12px;color:var(--ink);opacity:.72;padding:6px 8px;pointer-events:auto;cursor:pointer;white-space:nowrap;text-shadow:0 1px 6px #000;will-change:transform}
+.l.on{opacity:1;color:var(--sun)}
+.glass{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border-radius:18px}
+#brand{position:fixed;left:max(16px,env(safe-area-inset-left));top:calc(14px + env(safe-area-inset-top));font-family:var(--serif);font-size:20px;letter-spacing:.01em}
+#brand small{display:block;font:12px var(--sans);color:var(--dim);margin-top:2px}
+#info{position:fixed;right:max(16px,env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));width:min(320px,calc(100vw - 32px));padding:18px;transform:translateX(120%);opacity:0;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s}
+#info.show{transform:none;opacity:1}
+#info h2{font:400 28px var(--serif)}
+#info .k{color:var(--dim);font-size:13px;margin:2px 0 12px}
+#info dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
+#info dt{color:var(--dim)}#info dd{text-align:right}
+#info p{font-size:13px;line-height:1.55;color:#c8cddb;margin-top:12px}
+#bar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(760px,calc(100vw - 24px));padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;justify-content:center}
+button,input{font:inherit;color:var(--ink)}
+button{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:12px;padding:9px 13px;cursor:pointer;min-height:40px;transition:background .2s,transform .15s}
+button:hover{background:rgba(255,255,255,.14)}button:active{transform:scale(.96)}
+button.act{background:var(--sun);color:#1a1205;border-color:transparent}
+button:focus-visible,input:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+input[type=date]{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-height:40px;color-scheme:dark}
+input[type=range]{accent-color:var(--sun);width:120px;min-height:40px}
+.grp{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+#rate{font-size:12px;color:var(--dim);min-width:84px}
+@media(max-width:640px){#info{top:auto;bottom:calc(146px + env(safe-area-inset-bottom));right:50%;margin-right:calc(min(320px,100vw - 32px)/-2);transform:translateY(130%)}#info.show{transform:none}input[type=range]{width:96px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+#load{position:fixed;inset:0;display:grid;place-items:center;background:var(--void);font:20px var(--serif);color:var(--dim);transition:opacity .8s;z-index:9}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Interactive 3D solar system"></canvas>
+<div id="labels"></div>
+<div id="brand">Solar System<small>Drag to orbit · pinch or scroll to zoom · tap a planet</small></div>
+<aside id="info" class="glass" aria-live="polite"></aside>
+<nav id="bar" class="glass">
+  <button id="play" class="act" aria-label="Pause or play">Pause</button>
+  <div class="grp"><input id="spd" type="range" min="1" max="100" value="48" aria-label="Time speed"><span id="rate"></span></div>
+  <div class="grp"><input id="date" type="date" min="1600-01-01" max="2600-12-31" aria-label="Travel to date"><button id="now">Today</button></div>
+  <button id="lab" class="act">Labels</button>
+  <button id="home">Overview</button>
+</nav>
+<div id="load">Aligning the planets…</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+const J2000=Date.UTC(2000,0,1,12),DAY=864e5;
+// name, radius, color, orbit distance, L0 (deg at J2000), period (days), AU, diameter, note
+const B=[
+['Sun',4,'#ffb454',0,0,1,'-','1,392,700 km','Holds 99.8% of the mass of the entire solar system.'],
+['Mercury',.5,'#9a9189',10,252.25,87.97,'0.39','4,879 km','Fastest planet. A year here lasts just 88 Earth days.'],
+['Venus',.9,'#d9b27a',14,181.98,224.7,'0.72','12,104 km','Hotter than Mercury thanks to a runaway greenhouse effect.'],
+['Earth',1,'#2f6db5',18,100.46,365.26,'1.00','12,742 km','The only world known to host life. Orbited by one Moon.'],
+['Mars',.7,'#c1583a',23,355.43,686.98,'1.52','6,779 km','Home to Olympus Mons, the tallest volcano known.'],
+['Jupiter',2.6,'#c9a27e',33,34.35,4332.6,'5.20','139,820 km','Twice as massive as all other planets combined.'],
+['Saturn',2.2,'#e2cf9c',43,50.08,10759.2,'9.58','116,460 km','Its rings are mostly water ice, thin as a sheet of paper.'],
+['Uranus',1.6,'#8fd3d8',52,314.06,30688.5,'19.20','50,724 km','Rolls around the Sun tilted on its side.'],
+['Neptune',1.6,'#4a63d9',60,304.35,60182,'30.05','49,244 km','Supersonic winds, the fastest in the solar system.']];
+const $=id=>document.getElementById(id);
+const cv=$('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+let pr=Math.min(devicePixelRatio||1,2);R.setPixelRatio(pr);
+const S=new THREE.Scene();S.background=new THREE.Color(0x05070d);
+const cam=new THREE.PerspectiveCamera(50,1,.1,2000);
+S.add(new THREE.AmbientLight(0x334466,.45));
+S.add(new THREE.PointLight(0xfff0dd,1.7,0,0));
+function tex(base,band,acc){const k=document.createElement('canvas');k.width=512;k.height=256;const g=k.getContext('2d');g.fillStyle=base;g.fillRect(0,0,512,256);
+ for(let i=0;i<(band?70:420);i++){const a=Math.random()*.16;g.fillStyle=acc?acc:(Math.random()<.5?'#fff':'#000');g.globalAlpha=acc?Math.random()*.5:a;
+  if(band)g.fillRect(0,Math.random()*256,512,2+Math.random()*12);else{g.beginPath();g.arc(Math.random()*512,Math.random()*256,3+Math.random()*(acc?26:16),0,7);g.fill()}}
+ const t=new THREE.CanvasTexture(k);t.anisotropy=4;return t}
+const glowTex=(()=>{const k=document.createElement('canvas');k.width=k.height=256;const g=k.getContext('2d'),r=g.createRadialGradient(128,128,0,128,128,128);
+ r.addColorStop(0,'rgba(255,200,120,1)');r.addColorStop(.25,'rgba(255,160,60,.45)');r.addColorStop(1,'rgba(255,120,30,0)');g.fillStyle=r;g.fillRect(0,0,256,256);return new THREE.CanvasTexture(k)})();
+// stars
+const sp=new Float32Array(3*3000);for(let i=0;i<3000;i++){const u=Math.random()*2-1,a=Math.random()*6.283,s=Math.sqrt(1-u*u),r=500+Math.random()*200;sp[i*3]=r*s*Math.cos(a);sp[i*3+1]=r*u;sp[i*3+2]=r*s*Math.sin(a)}
+const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+S.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xcfd8ff,size:1.4,sizeAttenuation:false,transparent:true,opacity:.8})));
+const bodies=[],hits=[],lab=$('labels');
+B.forEach((d,i)=>{
+ const g=new THREE.Group(),band=i>=5,acc=i==3?'#3f9a5a':null;
+ const m=new THREE.Mesh(new THREE.SphereGeometry(d[1],i?48:64,i?32:48),i?new THREE.MeshStandardMaterial({map:tex(d[2],band,acc),roughness:.95,metalness:0}):new THREE.MeshBasicMaterial({map:tex('#ffb454',true),color:0xffd9a0}));
+ m.rotation.z=i==7?1.4:.1;g.add(m);
+ if(!i){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.set(26,26,1);g.add(s)}
+ if(i==6){const rg=new THREE.Mesh(new THREE.RingGeometry(d[1]*1.3,d[1]*2.2,96),new THREE.MeshBasicMaterial({color:0xd8c49a,opacity:.55,transparent:true,side:THREE.DoubleSide}));rg.rotation.x=-1.25;g.add(rg)}
+ const h=new THREE.Mesh(new THREE.SphereGeometry(Math.max(d[1]*1.5,1.6)),new THREE.MeshBasicMaterial({visible:false}));h.userData.i=i;g.add(h);hits.push(h);
+ if(i){const p=[];for(let k=0;k<=160;k++){const a=k/160*6.2832;p.push(new THREE.Vector3(Math.cos(a)*d[3],0,Math.sin(a)*d[3]))}
+  S.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(p),new THREE.LineBasicMaterial({color:0x8899cc,transparent:true,opacity:.16})))}
+ S.add(g);
+ const e=document.createElement('div');e.className='l';e.textContent=d[0];e.onclick=()=>pick(i);lab.appendChild(e);
+ bodies.push({g,m,e,d});
+});
+const moon=new THREE.Mesh(new THREE.SphereGeometry(.27,24,16),new THREE.MeshStandardMaterial({color:0xbfbfbf,roughness:1}));bodies[3].g.add(moon);
+// state
+let yaw=.7,pit=.55,dist=95,tdist=95,foc=-1,tgt=new THREE.Vector3(),sim=(Date.now()-J2000)/DAY,playing=true,labs=true;
+const rate=()=>.1*Math.pow(10,$('spd').value/100*3.5);
+function fmtRate(){const r=rate();$('rate').textContent=playing?(r<30?r.toFixed(1)+' days/s':(r/365.25).toFixed(1)+' yr/s'):'Paused'}
+function place(){bodies.forEach((b,i)=>{if(!i)return;const a=(b.d[4]+360*sim/b.d[5])*Math.PI/180;b.g.position.set(Math.cos(a)*b.d[3],0,-Math.sin(a)*b.d[3])});
+ const ma=sim/27.32*6.2832;moon.position.set(Math.cos(ma)*2,0,-Math.sin(ma)*2)}
+function dateStr(){return new Date(J2000+sim*DAY).toISOString().slice(0,10)}
+function pick(i){foc=i;const d=B[i];tdist=Math.max(d[1]*5,i?7:24);const f=$('info');
+ f.innerHTML='<h2>'+d[0]+'</h2><div class="k">'+(i?'Planet':'Star')+'</div><dl><dt>Diameter</dt><dd>'+d[7]+'</dd><dt>Distance from Sun</dt><dd>'+(i?d[6]+' AU':'-')+'</dd><dt>Orbit</dt><dd>'+(i?(d[5]<700?Math.round(d[5])+' days':(d[5]/365.25).toFixed(1)+' years'):'-')+'</dd></dl><p>'+d[8]+'</p>';f.classList.add('show');
+ bodies.forEach((b,k)=>b.e.classList.toggle('on',k==i))}
+function home(){foc=-1;tdist=95;$('info').classList.remove('show');bodies.forEach(b=>b.e.classList.remove('on'))}
+// input
+const ptr=new Map();let down=null,pd=0;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);down=[e.clientX,e.clientY,performance.now()];if(ptr.size==2){const a=[...ptr.values()];pd=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])}});
+cv.addEventListener('pointermove',e=>{const p=ptr.get(e.pointerId);if(!p)return;
+ if(ptr.size==1){yaw-=(e.clientX-p[0])*.005;pit=Math.max(-1.45,Math.min(1.45,pit+(e.clientY-p[1])*.005))}
+ p[0]=e.clientX;p[1]=e.clientY;
+ if(ptr.size==2){const a=[...ptr.values()],n=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);if(pd)tdist=clampD(tdist*pd/n);pd=n}});
+const up=e=>{ptr.delete(e.pointerId);pd=0;if(down&&e.type=='pointerup'&&Math.hypot(e.clientX-down[0],e.clientY-down[1])<6&&performance.now()-down[2]<350){
+ const rc=new THREE.Raycaster(),v=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);rc.setFromCamera(v,cam);
+ const h=rc.intersectObjects(hits)[0];h?pick(h.object.userData.i):0}down=null};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+const clampD=d=>Math.max(foc>0?B[foc][1]*2.4:6,Math.min(220,d));
+cv.addEventListener('wheel',e=>{e.preventDefault();tdist=clampD(tdist*Math.exp(e.deltaY*.0012))},{passive:false});
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';$('play').classList.toggle('act',playing);fmtRate()};
+$('spd').oninput=fmtRate;
+$('lab').onclick=()=>{labs=!labs;$('lab').classList.toggle('act',labs)};
+$('home').onclick=home;
+$('now').onclick=()=>{sim=(Date.now()-J2000)/DAY;$('date').value=dateStr()};
+$('date').onchange=e=>{const t=Date.parse(e.target.value+'T12:00:00Z');if(!isNaN(t))sim=(t-J2000)/DAY};
+addEventListener('keydown',e=>{if(e.target.tagName=='INPUT')return;if(e.code=='Space'){e.preventDefault();$('play').click()}if(e.key=='Escape')home()});
+function size(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener('resize',size);size();$('date').value=dateStr();fmtRate();
+// loop with adaptive quality
+let last=performance.now(),acc=0,fr=0;const v3=new THREE.Vector3();
+function frame(t){requestAnimationFrame(frame);const dt=Math.min((t-last)/1000,.1);last=t;
+ acc+=dt;fr++;if(acc>2){const f=fr/acc;if(f<40&&pr>.75){pr=Math.max(.75,pr-.25);R.setPixelRatio(pr);size()}acc=0;fr=0}
+ if(playing){sim+=rate()*dt;if(fr%20==0)$('date').value=dateStr()}
+ place();bodies.forEach(b=>b.m.rotation.y+=dt*.25);
+ const goal=foc>=0?bodies[foc].g.position:v3.set(0,0,0);
+ const k=1-Math.exp(-5*dt);tgt.lerp(goal,k);dist+=(tdist-dist)*k;
+ cam.position.set(tgt.x+dist*Math.cos(pit)*Math.sin(yaw),tgt.y+dist*Math.sin(pit),tgt.z+dist*Math.cos(pit)*Math.cos(yaw));cam.lookAt(tgt);
+ R.render(S,cam);
+ bodies.forEach(b=>{b.e.style.display=labs?'':'none';if(!labs)return;v3.setFromMatrixPosition(b.g.matrixWorld).project(cam);
+  const vis=v3.z<1;b.e.style.visibility=vis?'visible':'hidden';
+  b.e.style.transform='translate('+((v3.x*.5+.5)*innerWidth+8)+'px,'+((-v3.y*.5+.5)*innerHeight-8)+'px)'});
+}
+requestAnimationFrame(frame);
+setTimeout(()=>{const l=$('load');l.style.opacity=0;setTimeout(()=>l.remove(),800)},600);
+})();
+</script>
+</body>
+</html>
